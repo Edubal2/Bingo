@@ -1,3 +1,19 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDQIg_gMD9Vq8W8FcrTYDRFernKJAUx9-8",
+    authDomain: "bingo-dde4a.firebaseapp.com",
+    databaseURL: "https://bingo-dde4a-default-rtdb.firebaseio.com",
+    projectId: "bingo-dde4a",
+    storageBucket: "bingo-dde4a.firebasestorage.app",
+    messagingSenderId: "959558087813",
+    appId: "1:959558087813:web:66f87cb0383dc4dca865ec"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
 document.addEventListener('DOMContentLoaded', () => {
     const boardsContainer = document.getElementById('boardsContainer');
     const addPlayerBtn = document.getElementById('addPlayerBtn');
@@ -8,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerBoardTemplate = document.getElementById('playerBoardTemplate');
 
     let players = [];
+    let currentRoomId = null;
 
     const winningLines = [
         [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], // Rows
@@ -31,34 +48,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     function init() {
-        // Check if there's shared data in URL
         const hash = window.location.hash.substring(1);
-        if (hash) {
-            try {
-                const decoded = atob(hash);
-                players = JSON.parse(decoded);
-                // Clear hash for clean URL
-                history.replaceState(null, null, ' ');
-            } catch (e) {
-                console.error("Error validando el enlace compartido", e);
-                loadLocal();
-            }
+
+        if (hash && hash.startsWith('room-')) {
+            currentRoomId = hash;
         } else {
-            loadLocal();
+            // Generate a random room ID and set it in the URL
+            currentRoomId = 'room-' + Math.random().toString(36).substring(2, 9);
+            history.replaceState(null, null, '#' + currentRoomId);
         }
 
-        renderAllBoards();
+        listenToRoom(currentRoomId);
     }
 
-    function loadLocal() {
-        const saved = localStorage.getItem('bingoPlayers');
-        if (saved) {
-            players = JSON.parse(saved);
-        }
+    function listenToRoom(roomId) {
+        const roomRef = ref(database, 'rooms/' + roomId + '/players');
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Firebase might return an object with keys instead of array depending on how it's saved/deleted
+                players = Array.isArray(data) ? data : Object.values(data);
+            } else {
+                players = [];
+            }
+            renderAllBoards();
+        });
     }
 
-    function saveLocal() {
-        localStorage.setItem('bingoPlayers', JSON.stringify(players));
+    function saveToFirebase() {
+        if (!currentRoomId) return;
+        const roomRef = ref(database, 'rooms/' + currentRoomId + '/players');
+        set(roomRef, players).catch(error => {
+            console.error("Error saving to Firebase: ", error);
+            showToast("Error al guardar datos");
+        });
     }
 
     // Add new player
@@ -75,8 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         players.push({ id: Date.now(), name, color, grid });
         playerNameInput.value = '';
-        saveLocal();
-        renderAllBoards();
+        saveToFirebase();
     });
 
     // Enter key support for input
@@ -107,8 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.style.opacity = '0';
                 setTimeout(() => {
                     players.splice(playerIndex, 1);
-                    saveLocal();
-                    renderAllBoards();
+                    saveToFirebase();
                 }, 300);
             });
 
@@ -151,8 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         celebrate();
                     }
 
-                    saveLocal();
-                    renderAllBoards(); // Re-render to update state & progress
+                    saveToFirebase();
                 });
 
                 gridEl.appendChild(cell);
@@ -181,8 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const data = btoa(JSON.stringify(players));
-        const url = window.location.origin + window.location.pathname + '#' + data;
+        const url = window.location.origin + window.location.pathname + '#' + currentRoomId;
 
         navigator.clipboard.writeText(url).then(() => {
             showToast("¡Enlace copiado! Compártelo para mostrar el progreso");
