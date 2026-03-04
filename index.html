@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Interactivo Multi-Jugador</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Bingo <span class="highlight">4x4</span></h1>
+            <p>Añade jugadores y marca tus casillas. ¡Comparte tu enlace para mostrar tu progreso!</p>
+            
+            <div class="controls">
+                <input type="text" id="playerNameInput" placeholder="Nombre del jugador" maxlength="15">
+                <input type="color" id="playerColorInput" value="#ff3366">
+                <button id="addPlayerBtn" class="btn primary-btn">Añadir Jugador</button>
+                <button id="shareBtn" class="btn secondary-btn">Copiar Enlace para Compartir</button>
+            </div>
+            <div id="toast" class="toast hidden">Enlace copiado al portapapeles</div>
+        </header>
+
+        <main id="boardsContainer" class="boards-container">
+            <!-- Las tarjetas de bingo de los jugadores aparecerán aquí -->
+        </main>
+    </div>
+
+    <!-- Template para un tablero de jugador -->
+    <template id="playerBoardTemplate">
+        <div class="player-card glass-panel">
+            <div class="player-header">
+                <h2 class="player-name">Nombre</h2>
+                <button class="remove-player-btn" title="Eliminar jugador">&times;</button>
+            </div>
+            <div class="bingo-grid">
+                <!-- 16 casillas -->
+            </div>
+            <div class="player-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <span class="progress-text">0/16</span>
+            </div>
+        </div>
+    </template>
+
+    <script src="app.js"></script>
+</body>
+</html>
