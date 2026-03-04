@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,13 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="app-container">
         <header>
             <h1>Bingo <span class="highlight">4x4</span></h1>
             <p>Añade jugadores y marca tus casillas. ¡Comparte tu enlace para mostrar tu progreso!</p>
-            
+
             <div class="controls">
                 <input type="text" id="playerNameInput" placeholder="Nombre del jugador" maxlength="15">
                 <input type="color" id="playerColorInput" value="#ff3366">
@@ -46,6 +48,8 @@
         </div>
     </template>
 
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>

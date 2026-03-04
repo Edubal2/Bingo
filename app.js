@@ -9,6 +9,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let players = [];
 
+    const winningLines = [
+        [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], // Rows
+        [0, 4, 8, 12], [1, 5, 9, 13], [2, 6, 10, 14], [3, 7, 11, 15], // Cols
+        [0, 5, 10, 15], [3, 6, 9, 12] // Diagonals
+    ];
+
+    function getCompletedLines(grid) {
+        return winningLines.filter(line => line.every(index => grid[index]));
+    }
+
+    function celebrate() {
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+    }
+
     // Initialize
     function init() {
         // Check if there's shared data in URL
@@ -95,6 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Count checked items
             let checkedCount = 0;
 
+            const completedLines = getCompletedLines(player.grid);
+            const winningCells = new Set(completedLines.flat());
+
             // Generate 16 cells
             const bingoWords = [
                 "陈陈春 friend", "80's enjoyer", "Asistencia", "Foto Gypsy",
@@ -115,8 +138,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkedCount++;
                 }
 
+                if (winningCells.has(i)) {
+                    cell.classList.add('winning-cell');
+                }
+
                 cell.addEventListener('click', () => {
+                    const beforeLines = getCompletedLines(player.grid).length;
                     player.grid[i] = !player.grid[i];
+                    const afterLines = getCompletedLines(player.grid).length;
+
+                    if (afterLines > beforeLines) {
+                        celebrate();
+                    }
+
                     saveLocal();
                     renderAllBoards(); // Re-render to update state & progress
                 });
